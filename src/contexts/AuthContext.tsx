@@ -50,9 +50,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const fetchUserRole = async () => {
     try {
       const response = await verifyToken();
+      console.log('AuthContext - Fetched user role from backend:', response);
       setUserRole(response.role);
       // Store user data in localStorage
       localStorage.setItem('user', JSON.stringify(response));
+      console.log('AuthContext - Stored user in localStorage:', response);
       return response.role;
     } catch (error) {
       console.error('Error fetching user role:', error);

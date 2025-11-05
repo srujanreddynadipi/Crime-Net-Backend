@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Shield, Menu, Bell, AlertCircle, AlertTriangle, ChevronDown, User as UserIcon, LogOut, Settings } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { Shield, Menu, Bell, ChevronDown, User as UserIcon, LogOut, Settings, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { getUserNotifications } from '../../api/notifications';
+import { getUserNotifications } from '../../../api/notifications';
 
-const DashboardHeader = ({ user, onMenuToggle, setActiveTab }) => {
+const AdminHeader = ({ onMenuToggle }) => {
   const { currentUser, signOut, userRole } = useAuth();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -15,13 +15,11 @@ const DashboardHeader = ({ user, onMenuToggle, setActiveTab }) => {
   useEffect(() => {
     if (currentUser) {
       loadUnreadCount();
-      // Poll every 30 seconds
       const interval = setInterval(loadUnreadCount, 30000);
       return () => clearInterval(interval);
     }
   }, [currentUser]);
 
-  // Close profile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
@@ -43,10 +41,6 @@ const DashboardHeader = ({ user, onMenuToggle, setActiveTab }) => {
     }
   };
 
-  const handleNotificationClick = () => {
-    setActiveTab('notifications');
-  };
-
   const handleLogout = async () => {
     try {
       await signOut();
@@ -56,9 +50,9 @@ const DashboardHeader = ({ user, onMenuToggle, setActiveTab }) => {
     }
   };
 
-  const handleProfileClick = () => {
-    setShowProfileMenu(false);
-    setActiveTab('profile');
+  const admin = {
+    name: currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Admin',
+    email: currentUser?.email || 'admin@example.com',
   };
 
   return (
@@ -66,32 +60,29 @@ const DashboardHeader = ({ user, onMenuToggle, setActiveTab }) => {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-4">
-            <button onClick={onMenuToggle} className="text-gray-700 lg:hidden hover:bg-white/60 p-2 rounded-lg transition-all">
+            <button onClick={onMenuToggle} className="text-gray-700 lg:hidden hover:bg-white/50 p-2 rounded-lg transition-all">
               <Menu className="w-6 h-6" />
             </button>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-300 to-purple-400 rounded-xl flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" strokeWidth={2.5} />
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                <ShieldCheck className="w-6 h-6 text-white" strokeWidth={2.5} />
               </div>
               <div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent block">CrimeNet</span>
-                <span className="text-xs text-gray-500">Stay Safe, Stay Connected</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent block">CrimeNet Admin</span>
+                <span className="text-xs text-gray-500">Master Control Panel</span>
               </div>
             </div>
           </div>
-
+          
           <div className="flex items-center space-x-3">
-            <button 
-              onClick={() => setActiveTab('sos')}
-              className="hidden md:flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full font-bold hover:shadow-lg transform hover:scale-105 transition-all animate-pulse"
-            >
-              <AlertTriangle className="w-4 h-4" />
-              <span>Emergency SOS</span>
-            </button>
-
+            <div className="hidden md:flex items-center space-x-2 bg-white rounded-full px-4 py-2 border border-gray-200 shadow-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-gray-700 font-medium text-sm">All Systems Operational</span>
+            </div>
+            
             <div className="relative">
-              <button
-                onClick={handleNotificationClick}
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
                 className="relative p-2 bg-white rounded-full border border-gray-200 hover:shadow-md transition-all"
               >
                 <Bell className="w-5 h-5 text-gray-700" />
@@ -102,56 +93,45 @@ const DashboardHeader = ({ user, onMenuToggle, setActiveTab }) => {
                 )}
               </button>
             </div>
-
-            <div className="hidden sm:block w-px h-8 bg-gray-300"></div>
-
+            
             <div className="relative" ref={profileMenuRef}>
               <button 
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center space-x-2 bg-white px-3 py-2 rounded-full border border-gray-200 hover:shadow-md transition-all"
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-300 to-purple-400 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">
-                    {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                    {admin.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <div className="hidden md:block text-left">
                   <p className="font-bold text-gray-800 text-sm leading-none">
-                    {user?.displayName || user?.email?.split('@')[0] || 'User'}
+                    {admin.name}
                   </p>
-                  <p className="text-gray-500 text-xs capitalize">{userRole?.toLowerCase() || 'Citizen'}</p>
+                  <p className="text-gray-500 text-xs capitalize">{userRole?.toLowerCase() || 'Admin'}</p>
                 </div>
                 <ChevronDown className={`w-4 h-4 text-gray-600 hidden md:block transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Profile Dropdown Menu */}
               {showProfileMenu && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="font-semibold text-gray-800 text-sm">
-                      {user?.displayName || user?.email?.split('@')[0] || 'User'}
+                      {admin.name}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                    <p className="text-xs text-blue-600 font-medium mt-1 capitalize">{userRole?.toLowerCase() || 'Citizen'}</p>
+                    <p className="text-xs text-gray-500 truncate">{admin.email}</p>
+                    <p className="text-xs text-purple-600 font-medium mt-1 capitalize">{userRole?.toLowerCase() || 'Admin'}</p>
                   </div>
-
-                  <button
-                    onClick={handleProfileClick}
-                    className="w-full flex items-center space-x-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-left"
-                  >
-                    <UserIcon className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm text-gray-700">My Profile</span>
-                  </button>
 
                   <button
                     onClick={() => {
                       setShowProfileMenu(false);
-                      setActiveTab('settings');
+                      navigate('/admin/settings');
                     }}
                     className="w-full flex items-center space-x-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-left"
                   >
                     <Settings className="w-4 h-4 text-gray-600" />
-                    <span className="text-sm text-gray-700">Settings</span>
+                    <span className="text-sm text-gray-700">System Settings</span>
                   </button>
 
                   <div className="border-t border-gray-100 my-1"></div>
@@ -173,4 +153,4 @@ const DashboardHeader = ({ user, onMenuToggle, setActiveTab }) => {
   );
 };
 
-export default DashboardHeader;
+export default AdminHeader;

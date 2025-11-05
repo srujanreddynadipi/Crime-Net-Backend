@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Activity, Users, FileText, AlertTriangle } from 'lucide-react';
-import { getAnalyticsStatistics, getReportsByCategory, getTrends } from '../../api/analytics';
+import { getStatistics, getReportsByCategory, getReportTrends } from '../../api/analytics';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const SystemAnalyticsAPI = () => {
@@ -20,9 +20,9 @@ const SystemAnalyticsAPI = () => {
       setError('');
       
       const [stats, categories, trendsData] = await Promise.all([
-        getAnalyticsStatistics(),
+        getStatistics(),
         getReportsByCategory(),
-        getTrends()
+        getReportTrends()
       ]);
       
       setStatistics(stats);

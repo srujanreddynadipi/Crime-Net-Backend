@@ -2,11 +2,13 @@ import apiClient from './client';
 
 export interface User {
   uid: string;
+  userId?: string; // Alias for uid (backward compatibility)
   username?: string;
   fullName: string;
   email: string;
   emailVerified?: boolean;
   phone: string;
+  phoneNumber?: string; // Alias for phone (backward compatibility)
   role: string;
   address: string;
   languagePreference?: string;
@@ -43,5 +45,11 @@ export const deleteUser = async (uid: string) => {
 // Get users by role (admin/police)
 export const getUsersByRole = async (role: string) => {
   const response = await apiClient.get<User[]>(`/api/users/role/${role}`);
+  return response.data;
+};
+
+// Create user (admin only)
+export const createUser = async (user: User) => {
+  const response = await apiClient.post<User>('/api/users', user);
   return response.data;
 };

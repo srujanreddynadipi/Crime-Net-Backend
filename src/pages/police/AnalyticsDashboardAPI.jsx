@@ -4,6 +4,31 @@ import { getAllActiveAlerts } from '../../api/sos';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown, Users, FileText, AlertCircle, CheckCircle, Clock, MapPin, Activity } from 'lucide-react';
 
+// Helper function to safely parse dates
+const parseDateSafely = (dateValue) => {
+  if (!dateValue) return null;
+  
+  try {
+    const date = dateValue._seconds 
+      ? new Date(dateValue._seconds * 1000)
+      : new Date(dateValue);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) return null;
+    
+    return date;
+  } catch (error) {
+    console.warn('Invalid date value:', dateValue, error);
+    return null;
+  }
+};
+
+// Helper function to get date string safely
+const getDateString = (dateValue) => {
+  const date = parseDateSafely(dateValue);
+  return date ? date.toISOString().split('T')[0] : null;
+};
+
 const AnalyticsDashboardAPI = () => {
   const [reports, setReports] = useState([]);
   const [sosAlerts, setSosAlerts] = useState([]);
@@ -49,10 +74,14 @@ const AnalyticsDashboardAPI = () => {
     const times = reports
       .filter(r => r.createdAt && r.updatedAt)
       .map(r => {
-        const created = r.createdAt._seconds ? r.createdAt._seconds * 1000 : new Date(r.createdAt).getTime();
-        const updated = r.updatedAt._seconds ? r.updatedAt._seconds * 1000 : new Date(r.updatedAt).getTime();
+        const createdDate = parseDateSafely(r.createdAt);
+        const updatedDate = parseDateSafely(r.updatedAt);
+        if (!createdDate || !updatedDate) return 0;
+        const created = createdDate.getTime();
+        const updated = updatedDate.getTime();
         return (updated - created) / (1000 * 60 * 60); // hours
-      });
+      })
+      .filter(time => time > 0); // Remove invalid times
     
     if (times.length === 0) return 0;
     return (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1);
@@ -91,11 +120,21 @@ const AnalyticsDashboardAPI = () => {
       const dateStr = date.toISOString().split('T')[0];
       
       const dayReports = reports.filter(r => {
-        const reportDate = r.createdAt._seconds 
-          ? new Date(r.createdAt._seconds * 1000).toISOString().split('T')[0]
-          : new Date(r.createdAt).toISOString().split('T')[0];
-        return reportDate === dateStr;
-      });
+  if (!r.createdAt) return false;
+  
+  try {
+    const reportDate = parseDateSafely(r.createdAt);
+    
+    // Check if date is valid
+    if (!reportDate) return false;
+    
+    const reportDateStr = reportDate.toISOString().split('T')[0];
+    return reportDateStr === dateStr;
+  } catch (error) {
+    console.warn('Invalid date in report:', r.reportId, error);
+    return false;
+  }
+});
       
       last7Days.push({
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -343,10 +382,8 @@ const AnalyticsDashboardAPI = () => {
             <p className="text-lg font-bold text-slate-800">
               {reports.filter(r => {
                 const today = new Date().toISOString().split('T')[0];
-                const reportDate = r.createdAt._seconds 
-                  ? new Date(r.createdAt._seconds * 1000).toISOString().split('T')[0]
-                  : new Date(r.createdAt).toISOString().split('T')[0];
-                return reportDate === today;
+                const reportDate = getDateString(r.createdAt);
+                return reportDate && reportDate === today;
               }).length}
             </p>
           </div>
@@ -358,10 +395,8 @@ const AnalyticsDashboardAPI = () => {
                 if (r.status !== 'CLOSED' && r.status !== 'RESOLVED') return false;
                 const weekAgo = new Date();
                 weekAgo.setDate(weekAgo.getDate() - 7);
-                const updatedDate = r.updatedAt._seconds 
-                  ? new Date(r.updatedAt._seconds * 1000)
-                  : new Date(r.updatedAt);
-                return updatedDate >= weekAgo;
+                const updatedDate = parseDateSafely(r.updatedAt);
+                return updatedDate && updatedDate >= weekAgo;
               }).length}
             </p>
           </div>

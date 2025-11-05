@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Star, MessageSquare, User, TrendingUp, Award } from 'lucide-react';
-import { getAllFeedback, getFeedbackByOfficer } from '../../api/feedback';
+import { getAllFeedback, getFeedbacksByOfficer } from '../../api/feedback';
 import { getUsersByRole } from '../../api/users';
 
 const FeedbackManagementAPI = () => {
@@ -48,7 +48,7 @@ const FeedbackManagementAPI = () => {
 
   const fetchOfficerFeedback = async (officerId) => {
     try {
-      const data = await getFeedbackByOfficer(officerId);
+      const data = await getFeedbacksByOfficer(officerId);
       setFeedbacks(data || []);
     } catch (error) {
       console.error('Error fetching officer feedback:', error);
