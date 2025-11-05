@@ -65,10 +65,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Sign in with email and password
   const signIn = async (email: string, password: string) => {
     try {
+      // Clear any stale cached user before new login
+      localStorage.removeItem('user');
+      localStorage.removeItem('authToken');
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setCurrentUser(userCredential.user);
-      
-      // Fetch role from backend
+
+      // Force token refresh to propagate any updated custom claims
+      await userCredential.user.getIdToken(true);
+
+      // Fetch role from backend immediately after login
       await fetchUserRole();
     } catch (error) {
       console.error('Sign in error:', error);
@@ -135,6 +142,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setCurrentUser(user);
       
       if (user) {
+        // Force a token refresh so custom claims and backend auth are in sync
+        try {
+          await user.getIdToken(true);
+        } catch (_) {}
         // Fetch role when user logs in
         await fetchUserRole();
       } else {

@@ -30,23 +30,19 @@ export default function Login() {
 
     try {
       await signIn(email, password);
-      
-      // Wait a bit for userRole to be set by AuthContext
-      setTimeout(() => {
-        const userStr = localStorage.getItem('user');
-        const userData = userStr ? JSON.parse(userStr) : null;
-        
-        // Navigate to dashboard based on role
-        if (userData?.role === 'CITIZEN') {
-          navigate('/user');
-        } else if (userData?.role === 'POLICE') {
-          navigate('/police');
-        } else if (userData?.role === 'ADMIN') {
-          navigate('/admin');
-        } else {
-          navigate('/user');
-        }
-      }, 500);
+
+      // After signIn, AuthContext refreshes token and role.
+      // Read the freshly stored user payload and route immediately.
+      const userStr = localStorage.getItem('user');
+      const userData = userStr ? JSON.parse(userStr) : null;
+
+      if (userData?.role === 'POLICE') {
+        navigate('/police');
+      } else if (userData?.role === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/user');
+      }
     } catch (err) {
       console.error('Login error:', err);
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
