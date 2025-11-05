@@ -103,7 +103,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createUser(@RequestBody User user) {
         try {
-            if (user.getUserId() == null || user.getUserId().isEmpty()) {
+            if (user.getUid() == null || user.getUid().isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(java.util.Map.of("error", "User ID (uid) is required"));
             }
@@ -118,7 +118,7 @@ public class UserController {
 
             // Check if user already exists
             try {
-                User existingUser = userService.getUserById(user.getUserId());
+                User existingUser = userService.getUserById(user.getUid());
                 if (existingUser != null) {
                     return ResponseEntity.badRequest()
                             .body(java.util.Map.of("error", "User with this ID already exists"));
@@ -140,7 +140,7 @@ public class UserController {
             }
 
             userService.createUser(user);
-            User createdUser = userService.getUserById(user.getUserId());
+            User createdUser = userService.getUserById(user.getUid());
             return ResponseEntity.status(201).body(createdUser);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
