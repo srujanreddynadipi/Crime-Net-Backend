@@ -17,10 +17,11 @@ public class WebConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
                 "http://localhost:5174",
-                "http://localhost:5175"
-        // Add production domain here when deployed
+                "http://localhost:5175",
+                "https://crime-net-12f88.web.app",
+                "https://crime-net-12f88.firebaseapp.com"
         ));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

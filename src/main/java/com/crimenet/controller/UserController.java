@@ -76,4 +76,75 @@ public class UserController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PatchMapping("/{uid}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateUserRole(@PathVariable String uid, @RequestBody java.util.Map<String, String> body) {
+        try {
+            String newRole = body.get("role");
+            if (newRole == null
+                    || (!newRole.equals("CITIZEN") && !newRole.equals("POLICE") && !newRole.equals("ADMIN"))) {
+                return ResponseEntity.badRequest()
+                        .body(java.util.Map.of("error", "Invalid role. Must be CITIZEN, POLICE, or ADMIN"));
+            }
+            User user = userService.getUserById(uid);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            user.setRole(newRole);
+            userService.updateUser(uid, user);
+            return ResponseEntity.ok(java.util.Map.of("message", "Role updated successfully", "role", newRole));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        try {
+            if (user.getUserId() == null || user.getUserId().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(java.util.Map.of("error", "User ID (uid) is required"));
+            }
+            if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(java.util.Map.of("error", "Email is required"));
+            }
+            if (user.getFullName() == null || user.getFullName().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(java.util.Map.of("error", "Full name is required"));
+            }
+
+            // Check if user already exists
+            try {
+                User existingUser = userService.getUserById(user.getUserId());
+                if (existingUser != null) {
+                    return ResponseEntity.badRequest()
+                            .body(java.util.Map.of("error", "User with this ID already exists"));
+                }
+            } catch (Exception ignored) {
+                // User doesn't exist, continue with creation
+            }
+
+            // Set default role if not provided
+            if (user.getRole() == null || user.getRole().isEmpty()) {
+                user.setRole("CITIZEN");
+            }
+
+            // Validate role
+            if (!user.getRole().equals("CITIZEN") && !user.getRole().equals("POLICE")
+                    && !user.getRole().equals("ADMIN")) {
+                return ResponseEntity.badRequest()
+                        .body(java.util.Map.of("error", "Invalid role. Must be CITIZEN, POLICE, or ADMIN"));
+            }
+
+            userService.createUser(user);
+            User createdUser = userService.getUserById(user.getUserId());
+            return ResponseEntity.status(201).body(createdUser);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(java.util.Map.of("error", "Failed to create user: " + e.getMessage()));
+        }
+    }
 }
