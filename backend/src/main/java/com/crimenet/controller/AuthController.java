@@ -48,11 +48,11 @@ public class AuthController {
         try {
             String idToken = token.replace("Bearer ", "");
             FirebaseToken decodedToken = authService.verifyToken(idToken);
-            
+
             // Get user role from database
             User user = userService.getUserById(decodedToken.getUid());
             String role = user != null ? user.getRole() : "CITIZEN";
-            
+
             return ResponseEntity.ok(Map.of(
                     "uid", decodedToken.getUid(),
                     "email", decodedToken.getEmail(),

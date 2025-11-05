@@ -3,14 +3,14 @@ import StatsCards from './StatsCards';
 import ActiveCasesTable from './ActiveCasesTable';
 import LiveCrimeMap from './LiveCrimeMap';
 import SecureChat from './SecureChat';
-import AnalyticsDashboard from './AnalyticsDashboard';
 import MissingPersons from './MissingPersons';
 import CommunityWatch from './CommunityWatch';
-import EvidenceVault from './EvidenceVault';
 import ReportsModule from './ReportsModule';
 import SOSMonitoring from './SOSMonitoring';
 import CaseAssignment from './CaseAssignment';
 import ReportManagementAPI from './ReportManagementAPI';
+import EvidenceVaultAPI from './EvidenceVaultAPI';
+import AnalyticsDashboardAPI from './AnalyticsDashboardAPI';
 
 const Dashboard = ({ activeTab }) => {
   const renderContent = () => {
@@ -23,7 +23,7 @@ const Dashboard = ({ activeTab }) => {
               <ActiveCasesTable />
               <LiveCrimeMap />
             </div>
-            <AnalyticsDashboard />
+            <AnalyticsDashboardAPI />
           </>
         );
       case 'sos':
@@ -39,13 +39,13 @@ const Dashboard = ({ activeTab }) => {
       case 'messages':
         return <SecureChat />;
       case 'analytics':
-        return <AnalyticsDashboard />;
+        return <AnalyticsDashboardAPI />;
       case 'community':
         return <CommunityWatch />;
       case 'missing':
         return <MissingPersons />;
       case 'evidence':
-        return <EvidenceVault />;
+        return <EvidenceVaultAPI />;
       case 'reports':
         return <ReportsModule />;
       default:
