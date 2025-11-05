@@ -44,13 +44,17 @@ public class ReportRepository {
                 .get()
                 .get();
 
-        // Sort in-memory by createdAt desc to avoid requiring a Firestore composite index
+        // Sort in-memory by createdAt desc to avoid requiring a Firestore composite
+        // index
         return querySnapshot.getDocuments().stream()
                 .map(doc -> doc.toObject(CrimeReport.class))
                 .sorted((a, b) -> {
-                    if (a.getCreatedAt() == null && b.getCreatedAt() == null) return 0;
-                    if (a.getCreatedAt() == null) return 1;
-                    if (b.getCreatedAt() == null) return -1;
+                    if (a.getCreatedAt() == null && b.getCreatedAt() == null)
+                        return 0;
+                    if (a.getCreatedAt() == null)
+                        return 1;
+                    if (b.getCreatedAt() == null)
+                        return -1;
                     return b.getCreatedAt().compareTo(a.getCreatedAt());
                 })
                 .collect(Collectors.toList());

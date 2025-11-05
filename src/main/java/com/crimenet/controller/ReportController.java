@@ -32,10 +32,11 @@ public class ReportController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('CITIZEN', 'POLICE', 'ADMIN')")
-    public ResponseEntity<CrimeReport> createReport(@Valid @RequestBody CreateReportRequest request, Authentication auth) {
+    public ResponseEntity<CrimeReport> createReport(@Valid @RequestBody CreateReportRequest request,
+            Authentication auth) {
         try {
             FirebaseUserDetails userDetails = (FirebaseUserDetails) auth.getPrincipal();
-            
+
             // Convert DTO to CrimeReport entity
             CrimeReport report = new CrimeReport();
             report.setUserId(userDetails.getUid());
@@ -47,7 +48,7 @@ public class ReportController {
             report.setLatitude(request.getLatitude());
             report.setLongitude(request.getLongitude());
             report.setIsAnonymous(request.getIsAnonymous() != null ? request.getIsAnonymous() : false);
-            
+
             // Convert ISO 8601 string to Firestore Timestamp
             if (request.getIncidentAt() != null && !request.getIncidentAt().isEmpty()) {
                 try {
@@ -57,7 +58,7 @@ public class ReportController {
                     logger.warn("Failed to parse incidentAt date: {}", request.getIncidentAt());
                 }
             }
-            
+
             CrimeReport created = reportService.createReport(report);
             return ResponseEntity.ok(created);
         } catch (Exception e) {
