@@ -1,0 +1,24 @@
+# Firebase service account key
+firebase-adminsdk.json
+
+# Build outputs
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
