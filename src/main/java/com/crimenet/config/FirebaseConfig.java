@@ -8,8 +8,8 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class FirebaseConfig {
@@ -17,13 +17,36 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
-            InputStream serviceAccount = getClass()
-                    .getClassLoader()
-                    .getResourceAsStream("crime-net-12f88-firebase-adminsdk-fbsvc-0f2e4a5d71.json");
+            InputStream serviceAccount = null;
+
+            // 1) Prefer inline JSON via env var (best for Render)
+            String inlineJson = System.getenv("FIREBASE_CONFIG_JSON");
+            if (inlineJson != null && !inlineJson.isBlank()) {
+                serviceAccount = new ByteArrayInputStream(inlineJson.getBytes(StandardCharsets.UTF_8));
+            }
+
+            // 2) Otherwise try GOOGLE_APPLICATION_CREDENTIALS file path
+            if (serviceAccount == null) {
+                String credsPath = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
+                if (credsPath != null && !credsPath.isBlank()) {
+                    File f = new File(credsPath);
+                    if (f.exists()) {
+                        serviceAccount = new FileInputStream(f);
+                    }
+                }
+            }
+
+            // 3) Fallback: classpath resource (for local dev)
+            if (serviceAccount == null) {
+                serviceAccount = getClass()
+                        .getClassLoader()
+                        .getResourceAsStream("crime-net-12f88-firebase-adminsdk-fbsvc-0f2e4a5d71.json");
+            }
 
             if (serviceAccount == null) {
-                throw new IOException("Firebase service account file not found. " +
-                        "Please add crime-net-12f88-firebase-adminsdk-fbsvc-0f2e4a5d71.json to src/main/resources/");
+                throw new IOException("Firebase credentials not found. Provide FIREBASE_CONFIG_JSON env var, " +
+                        "or set GOOGLE_APPLICATION_CREDENTIALS to a readable file path, " +
+                        "or place the service account JSON on the classpath.");
             }
 
             FirebaseOptions options = FirebaseOptions.builder()
