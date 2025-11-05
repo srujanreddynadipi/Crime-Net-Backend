@@ -12,8 +12,8 @@ WORKDIR /app
 # Copy all files (including pom.xml, src, and resources)
 COPY . .
 
-# Debug: List files to verify they're copied
-RUN ls -la && ls -la src/ || true
+# Change to backend directory if it exists, otherwise stay in /app
+WORKDIR /app/backend
 
 # Build the application
 RUN mvn clean package -DskipTests
