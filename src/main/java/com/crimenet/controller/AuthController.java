@@ -26,18 +26,28 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
+            // Use role from request, default to CITIZEN if not provided
+            String role = request.getRole() != null && !request.getRole().isEmpty()
+                    ? request.getRole()
+                    : "CITIZEN";
+
+            // Validate role
+            if (!role.equals("CITIZEN") && !role.equals("POLICE") && !role.equals("ADMIN")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid role"));
+            }
+
             User user = new User();
             user.setUid(request.getUid());
             user.setFullName(request.getFullName());
             user.setEmail(request.getEmail());
             user.setPhone(request.getPhone());
             user.setAddress(request.getAddress());
-            user.setRole("CITIZEN");
+            user.setRole(role);
 
             userService.createUser(user);
-            authService.setUserRole(request.getUid(), "CITIZEN");
+            authService.setUserRole(request.getUid(), role);
 
-            return ResponseEntity.ok(Map.of("message", "User registered successfully"));
+            return ResponseEntity.ok(Map.of("message", "User registered successfully", "role", role));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
