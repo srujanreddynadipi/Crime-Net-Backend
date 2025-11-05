@@ -127,10 +127,12 @@ sos_alerts/
 3. Deploy
 
 ### Render.com
-1. Create Web Service from GitHub
-2. Build: `mvn clean package`
-3. Start: `java -jar target/crimenet-backend-0.0.1-SNAPSHOT.jar`
-4. Add environment variable for Firebase credentials
+1. Create Web Service from GitHub (root directory: `/`)
+2. Build command: `mvn -DskipTests clean package`
+3. Start command: `java -jar target/crimenet-backend-1.0.0.jar`
+4. Environment variables:
+  - `FIREBASE_CONFIG_JSON` = paste the full contents of your Firebase service account JSON (recommended)
+  - or `GOOGLE_APPLICATION_CREDENTIALS` = path to a mounted JSON file (advanced)
 
 ### Fly.io
 ```bash
@@ -163,7 +165,8 @@ mvn test
 
 ## Environment Variables
 
-- `GOOGLE_APPLICATION_CREDENTIALS` - Path to service account key (optional, defaults to classpath)
+- `FIREBASE_CONFIG_JSON` - Inline JSON for Firebase Admin credentials (preferred in cloud)
+- `GOOGLE_APPLICATION_CREDENTIALS` - Path to service account key file (optional)
 - `SERVER_PORT` - Server port (default: 8080)
 
 ## Security Notes
