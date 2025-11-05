@@ -9,14 +9,8 @@ RUN apt-get update && \
 # Set working directory
 WORKDIR /app
 
-# Copy pom.xml first (for better caching)
-COPY pom.xml ./
-
-# Download dependencies (this layer will be cached if pom.xml doesn't change)
-RUN mvn dependency:go-offline -B || true
-
-# Copy source code
-COPY src ./src
+# Copy all files (including pom.xml, src, and resources)
+COPY . .
 
 # Build the application
 RUN mvn clean package -DskipTests
