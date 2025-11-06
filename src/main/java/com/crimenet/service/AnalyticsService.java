@@ -35,9 +35,17 @@ public class AnalyticsService {
         stats.put("closedReports", reportRepository.findByStatus("CLOSED").size());
 
         // Get user counts by role
-        stats.put("citizenCount", userRepository.findByRole("CITIZEN").size());
-        stats.put("policeCount", userRepository.findByRole("POLICE").size());
-        stats.put("adminCount", userRepository.findByRole("ADMIN").size());
+        long citizenCount = userRepository.findByRole("CITIZEN").size();
+        long policeCount = userRepository.findByRole("POLICE").size();
+        long adminCount = userRepository.findByRole("ADMIN").size();
+        
+        stats.put("citizenCount", citizenCount);
+        stats.put("policeCount", policeCount);
+        stats.put("adminCount", adminCount);
+        stats.put("totalUsers", citizenCount + policeCount + adminCount);
+        stats.put("totalReports", reportRepository.findAll().size());
+        stats.put("resolvedReports", reportRepository.findByStatus("RESOLVED").size());
+        stats.put("pendingReports", reportRepository.findByStatus("PENDING").size());
 
         // Get tips count
         stats.put("totalTips", tipRepository.findAll().size());
