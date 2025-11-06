@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: crimenet-backend
+    env: java
+    buildCommand: mvn clean install -DskipTests
+    startCommand: java -jar target/crimenet-backend-1.0.0.jar
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: JAVA_TOOL_OPTIONS
+        value: -Xmx512m

@@ -1,136 +1,182 @@
-# Crime Net - React Starter App
+# CrimeNet Backend
 
-A modern React starter application built with Vite, TypeScript, Tailwind CSS, and React Router.
+Spring Boot backend for CrimeNet civic safety platform using Firebase Firestore as database.
 
-## 🚀 Features
+## Prerequisites
 
-- ⚡ **Vite** - Lightning fast build tool and dev server
-- ⚛️ **React 18** - Latest version of React with TypeScript
-- 🎨 **Tailwind CSS** - Utility-first CSS framework
-- 🧭 **React Router** - Client-side routing
-- 📱 **Responsive Design** - Mobile-first approach
-- 🔥 **Hot Module Replacement** - Instant updates during development
+- Java 17 or higher
+- Maven 3.6+
+- Firebase project with Firestore enabled
+- Firebase service account key
 
-## 📦 Getting Started
+## Setup
 
-### Prerequisites
+### 1. Firebase Configuration
 
-- Node.js (v18 or higher)
-- npm or yarn
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Enable Firestore Database (Native mode)
+3. Enable Authentication
+4. Generate a service account key:
+   - Go to Project Settings > Service Accounts
+   - Click "Generate New Private Key"
+   - Save the JSON file as `firebase-adminsdk.json`
+5. Place `firebase-adminsdk.json` in `src/main/resources/`
 
-### Installation
+**Important:** Never commit `firebase-adminsdk.json` to version control!
 
-1. Clone the repository
-2. Install dependencies:
+### 2. Firebase Authentication Setup
+
+Users authenticate with Firebase on the frontend. The backend verifies ID tokens.
+
+To set custom claims (roles) for users:
+
+```javascript
+// Using Firebase Admin SDK (Node.js script or Cloud Function)
+admin.auth().setCustomUserClaims(uid, { role: 'CITIZEN' })
+```
+
+Supported roles: `CITIZEN`, `POLICE`, `ADMIN`
+
+### 3. Build and Run
+
 ```bash
-npm install
+# Build
+mvn clean install
+
+# Run
+mvn spring-boot:run
 ```
 
-### Development
+Server starts on `http://localhost:8080`
 
-Start the development server:
+## API Endpoints
+
+### Authentication
+
+- `POST /api/auth/register` - Register new user (public)
+- `POST /api/auth/verify` - Verify Firebase token (public)
+
+### Reports
+
+- `POST /api/reports` - Create crime report
+- `GET /api/reports/{id}` - Get report details
+- `GET /api/reports/user/{userId}` - Get user's reports
+- `GET /api/reports/status/{status}` - Get reports by status (police/admin)
+- `PUT /api/reports/{id}/assign` - Assign officer (police/admin)
+- `PUT /api/reports/{id}/status` - Update status (police/admin)
+- `GET /api/reports/{id}/timeline` - Get report timeline
+
+### Anonymous Tips
+
+- `POST /api/tips` - Submit anonymous tip (public)
+- `GET /api/tips/track/{code}` - Track tip by code (public)
+- `GET /api/tips` - Get all tips (police/admin)
+
+### SOS Alerts
+
+- `POST /api/sos/trigger` - Trigger SOS alert
+- `PUT /api/sos/{id}/status` - Update SOS status (police/admin)
+
+### Notifications
+
+- `GET /api/notifications` - Get user notifications
+- `PUT /api/notifications/{id}/read` - Mark as read
+
+## Authentication
+
+All protected endpoints require Firebase ID token in Authorization header:
+
+```
+Authorization: Bearer <firebase-id-token>
+```
+
+Frontend should:
+1. Authenticate user with Firebase Auth
+2. Get ID token: `await user.getIdToken()`
+3. Send token in requests
+
+## Firestore Structure
+
+```
+users/
+  {uid}/
+    fullName, email, phone, role, address, ...
+
+reports/
+  {reportId}/
+    userId, title, description, status, ...
+    timelines/
+      {timelineId}/
+    attachments/
+      {attachmentId}/
+
+tips/
+  {tipId}/
+    title, description, trackingCode, ...
+
+sos_alerts/
+  {sosId}/
+    userId, latitude, longitude, status, ...
+```
+
+## Deployment Options (Free Tier)
+
+### Railway.app
+1. Connect GitHub repo
+2. Add `GOOGLE_APPLICATION_CREDENTIALS_JSON` environment variable (paste JSON content)
+3. Deploy
+
+### Render.com
+1. Create Web Service from GitHub (root directory: `/`)
+2. Build command: `mvn -DskipTests clean package`
+3. Start command: `java -jar target/crimenet-backend-1.0.0.jar`
+4. Environment variables:
+  - `FIREBASE_CONFIG_JSON` = paste the full contents of your Firebase service account JSON (recommended)
+  - or `GOOGLE_APPLICATION_CREDENTIALS` = path to a mounted JSON file (advanced)
+
+### Fly.io
 ```bash
-npm run dev
+fly launch
+fly secrets set GOOGLE_APPLICATION_CREDENTIALS_JSON="$(cat firebase-adminsdk.json)"
+fly deploy
 ```
 
-The app will be available at `http://localhost:5173`
+## Development
 
-### Build
+### Project Structure
 
-Build for production:
+```
+src/main/java/com/crimenet/
+├── config/          - Spring configuration
+├── controller/      - REST controllers
+├── dto/             - Request/response objects
+├── exception/       - Custom exceptions
+├── model/           - Entity models
+├── repository/      - Firestore repositories
+├── security/        - Authentication & authorization
+└── service/         - Business logic
+```
+
+### Testing
+
 ```bash
-npm run build
+mvn test
 ```
 
-Preview production build:
-```bash
-npm run preview
-```
+## Environment Variables
 
-## 📁 Project Structure
+- `FIREBASE_CONFIG_JSON` - Inline JSON for Firebase Admin credentials (preferred in cloud)
+- `GOOGLE_APPLICATION_CREDENTIALS` - Path to service account key file (optional)
+- `SERVER_PORT` - Server port (default: 8080)
 
-```
-src/
-├── components/      # Reusable components
-│   └── Layout.tsx   # Main layout with navigation
-├── pages/           # Page components
-│   ├── Home.tsx     # Home page
-│   ├── About.tsx    # About page
-│   └── Contact.tsx  # Contact page
-├── App.tsx          # Main App component with routes
-├── main.tsx         # Application entry point
-└── index.css        # Global styles with Tailwind
-```
+## Security Notes
 
-## 🛠️ Technologies Used
+- All passwords are hashed by Firebase Auth
+- ID tokens are verified on every request
+- Role-based access control via Spring Security
+- CORS configured for frontend origin only
+- Stateless session management
 
-- **React** - UI library
-- **TypeScript** - Type safety
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **React Router** - Routing
+## Support
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+For issues or questions, please create an issue in the repository.

@@ -1,0 +1,11 @@
+target/
+!target/crimenet-backend-1.0.0.jar
+.mvn/wrapper/maven-wrapper.jar
+*.log
+*.tmp
+.git
+.gitignore
+README.md
+.env
+.DS_Store
+node_modules
